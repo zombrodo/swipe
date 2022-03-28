@@ -89,11 +89,6 @@ it'll return `nil`.
 
 To update the keyboard's letters, you can call `keyboard:setLetters(newLetters)`
 
-## To-do
-
-- Wordscapes allows for you to "undo" a swipe by just reversing your steps.
-  Simple enough addition, but not something I've gotten around to do just yet!
-
 ## Attribution
 
 Example font is `mini-wakuwaku` by miniyama, gratefully retrieved from

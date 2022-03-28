@@ -111,6 +111,7 @@ function Swipe:setLetters(letters)
         size = math.max(text:getWidth(), text:getHeight()),
         letter = letter,
         selected = false,
+        firstHover = false,
         index = index
       }
     end
@@ -149,6 +150,7 @@ function Swipe:__track(letter)
     or (letter.index ~= self.__selected[#self.__selected].index
     and not letter.selected )then
     letter.selected = true
+    letter.firstHover = true
     table.insert(self.__selected, letter)
   end
 end
@@ -182,18 +184,37 @@ function Swipe:start(id, x, y)
   end
 end
 
+-- Internal: removes the given letter from the list of selected letters. Not
+-- intended to be used externally.
+function Swipe:__untrack(letter)
+  letter.firstHover = true
+  letter.selected = false
+  table.remove(self.__selected)
+end
+
 -- Updates the swiping state. Use this if your input is a mouse. If you're using
 -- touch behaviours, prefer `touchMoved`. Takes `(x, y)` as the current position
 -- of the pointer.
--- Returns a table containing the letters currently selected in order.
 function Swipe:moved(x, y)
   if not self.isSwiping or not self:inBounds(x, y) then
     return
   end
 
   for i, letter in ipairs(self.__letters) do
-    if self:__isHovering(letter, x, y) then
-      self:__track(letter)
+    -- If we've moved off of the letter we just set, then update its
+    -- `firstHover` flag
+    if letter.firstHover and not self:__isHovering(letter, x, y) then
+      letter.firstHover = false
+    end
+    -- If we're hovering over a letter that we've left, and returned to, then
+    if self:__isHovering(letter, x, y) and not letter.firstHover then
+      -- If it's the last letter in our list, we're undoing, so lets remove it
+      if self.__selected[#self.__selected] == letter then
+        self:__untrack(letter)
+      else
+        -- Otherwise, track it
+        self:__track(letter)
+      end
     end
   end
 end
@@ -220,8 +241,8 @@ function Swipe:stop(id)
     end
 
     local result = self:get()
-
     self.__selected = {}
+
     return result
   end
 end
